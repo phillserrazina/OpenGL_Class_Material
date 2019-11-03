@@ -1,1 +1,1 @@
-# OpenGL_Coursework_1
+# OpenGL Class Material
