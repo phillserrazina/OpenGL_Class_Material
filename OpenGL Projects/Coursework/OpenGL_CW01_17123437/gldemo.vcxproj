@@ -80,8 +80,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="shader_setup.h" />
-    <ClInclude Include="Shape.h" />
-    <ClInclude Include="Square.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="texture_loader.h" />
@@ -89,7 +87,6 @@
   <ItemGroup>
     <ClCompile Include="gldemo.cpp" />
     <ClCompile Include="shader_setup.cpp" />
-    <ClCompile Include="Shape.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

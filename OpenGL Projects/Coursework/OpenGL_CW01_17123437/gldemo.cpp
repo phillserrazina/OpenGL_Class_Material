@@ -21,10 +21,12 @@ GLuint locT; // location of "T" uniform variable in myShaderProgram
 GLuint locT2;
 
 
-// Textures
-GLuint myGroundTexture = 0;
-GLuint myMountainTexture = 1;
+#pragma region Textures
+GLuint myGrassTexture = 0;
+GLuint mySkyTexture = 1;
+#pragma endregion
 
+#pragma region Mouse Variables
 // Mouse input (rotation) example
 // Variable we'll use to animate (rotate) our star object
 float theta = 0.0f;
@@ -32,34 +34,30 @@ float theta = 0.0f;
 // Variables needed to track where the mouse pointer is so we can determine which direction it's moving in
 int mouse_x, mouse_y;
 bool mDown = false;
+#pragma endregion
 
+#pragma region Shaders
+GLuint myShaderProgram;				// Shader program object for applying textures to our shapes
+GLuint myShaderProgramNoTexture;	// Second shader progam object for non textured shapes such as our rainbow star
+#pragma endregion
 
-// Shader program object for applying textures to our shapes
-GLuint myShaderProgram;
-
-// Second shader progam object for non textured shapes such as our rainbow star
-GLuint myShaderProgramNoTexture;
-
+#pragma region Grass VAO Variables
 // Vertex Buffer Object IDs for the ground texture object
-GLuint quadPosVBO, quadColourVBO, quadTexCoordVBO, quadIndicesVBO;
-
-
-// Vertex Buffer Object IDs for the mountain and sky texture object
-GLuint quadMPosVBO, quadMColourVBO, quadMTexCoordVBO, quadMIndicesVBO;
+GLuint grassPosVBO, grassColourVBO, grassTexCoordVBO, grassIndicesVBO;
 
 // Packed vertex arrays for the ground object
 
 // 1) Position Array - Store vertices as (x,y) pairs
-static GLfloat quadVertices[] = {
+static GLfloat grassVertices[] = {
 
-	-1.0, -1.0f,
+	-1.0, -0.1f,
 	-1.0f, 1.0f,
-	1.0f, -1.0f,
+	1.0f, -0.1f,
 	1.0f, 1.0f
 };
 
 // 2) Colour Array - Store RGB values as unsigned bytes
-static GLubyte quadColors[] = {
+static GLubyte grassColors[] = {
 
 	255, 0, 0, 255,
 	255, 255, 0, 255,
@@ -69,7 +67,7 @@ static GLubyte quadColors[] = {
 };
 
 // 3) Texture coordinate array (store uv coordinates as floating point values)
-static float quadTextureCoords[] = {
+static float grassTextureCoords[] = {
 
 	0.0f, 1.0f,
 	0.0f, 0.0f,
@@ -79,22 +77,26 @@ static float quadTextureCoords[] = {
 };
 
 // 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
-static GLubyte quadVertexIndices[] = { 0, 1, 2, 3 };
+static GLubyte grassVertexIndices[] = { 0, 1, 2, 3 };
+#pragma endregion
 
-// -----------------------
-// Packed vertex arrays for the mountain and sky object
+#pragma region Sky VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint skyPosVBO, skyColourVBO, skyTexCoordVBO, skyIndicesVBO;
+
+// Packed vertex arrays for the ground object
 
 // 1) Position Array - Store vertices as (x,y) pairs
-static GLfloat quadMVertices[] = {
+static GLfloat skyVertices[] = {
 
-	-1.0, -1.0f,
+	-1.0, -0.1f,
 	-1.0f, 1.0f,
-	1.0f, -1.0f,
+	1.0f, -0.1f,
 	1.0f, 1.0f
 };
 
 // 2) Colour Array - Store RGB values as unsigned bytes
-static GLubyte quadMColors[] = {
+static GLubyte skyColors[] = {
 
 	255, 0, 0, 255,
 	255, 255, 0, 255,
@@ -104,7 +106,7 @@ static GLubyte quadMColors[] = {
 };
 
 // 3) Texture coordinate array (store uv coordinates as floating point values)
-static float quadMTextureCoords[] = {
+static float skyTextureCoords[] = {
 
 	0.0f, 1.0f,
 	0.0f, 0.0f,
@@ -114,31 +116,31 @@ static float quadMTextureCoords[] = {
 };
 
 // 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
-static GLubyte quadMVertexIndices[] = { 0, 1, 2, 3 };
+static GLubyte skyVertexIndices[] = { 0, 1, 2, 3 };
+#pragma endregion
 
-
-// Function Prototypes
-
+#pragma region Function Prototypes
 void init(int argc, char* argv[]);
-void setupStarVBO(void);
-void setupQuadTextureGroundVBO(void);
-void setupQuadTextureMountainVBO(void);
+
+void setupGrassVBO(void);
+void setupSkyVBO(void);
+
 void report_version(void);
 void display(void);
-void drawTexturedQuad(void);
-void drawTexturedQuadVBOGround(void);
-void drawTexturedQuadVBOMountain(void);
-void drawStar(void);
-void drawStar_VBO(void);
+
+void drawTexturedQuadVBO_Grass(void);
+void drawTexturedQuadVBO_Sky(void);
+
 void update(void);
 void mouseButtonDown(int button_id, int state, int x, int y);
 void mouseMove(int x, int y);
 void keyDown(unsigned char key, int x, int y);
 
-void setupVBO(GLuint, GLuint, GLuint, GLuint, GLfloat[], GLubyte[], float[], GLubyte[]);
-
-void setupVAO(GLuint, GLuint, GLuint, GLuint, GLuint, GLfloat[], GLubyte[], float[], GLubyte[]);
-void drawVAO(GLubyte, int);
+//void setupVBO(GLuint, GLuint, GLuint, GLuint, GLfloat[], GLubyte[], float[], GLubyte[]);
+//
+//void setupVAO(GLuint, GLuint, GLuint, GLuint, GLuint, GLfloat[], GLubyte[], float[], GLubyte[]);
+//void drawVAO(GLubyte, int);
+#pragma endregion
 
 int _tmain(int argc, char* argv[]) {
 
@@ -209,8 +211,8 @@ void init(int argc, char* argv[]) {
 	glLineWidth(9.0f);
 
 	// Load demo texture
-	myGroundTexture = fiLoadTexture("Sky.png");
-	myMountainTexture = fiLoadTexture("Mountains and River.png");
+	myGrassTexture = fiLoadTexture("grass.jpg");
+	mySkyTexture = fiLoadTexture("sky.jpg");
 
 	// Shader setup 
 	myShaderProgram = setupShaders(string("Shaders\\basic_vertex_shader.txt"), string("Shaders\\basic_fragment_shader.txt"));
@@ -220,11 +222,8 @@ void init(int argc, char* argv[]) {
 	locT = glGetUniformLocation(myShaderProgram, "T");
 	locT2 = glGetUniformLocation(myShaderProgramNoTexture, "T2");
 
-	// Setup star object using Vertex Buffer Objects (VBOs)
-	setupStarVBO();
-	setupQuadTextureGroundVBO();
-	//setupVBO(quadPosVBO, quadColourVBO, quadTexCoordVBO, quadIndicesVBO, quadVertices, quadColors, quadTextureCoords, quadVertexIndices);
-	setupQuadTextureMountainVBO();
+	setupGrassVBO();
+	setupSkyVBO();
 }
 
 
@@ -238,53 +237,53 @@ void report_version(void) {
 	cout << "OpenGL version " << majorVersion << "." << minorVersion << "\n\n";
 }
 
-// our ground
-void setupQuadTextureGroundVBO(void) {
+#pragma region VBO Setups
+void setupGrassVBO(void) {
 
 	// setup VBO for the quad object position data
-	glGenBuffers(1, &quadPosVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadPosVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &grassPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
 
 	// setup VBO for the quad object colour data
-	glGenBuffers(1, &quadColourVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadColourVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadColors), quadColors, GL_STATIC_DRAW);
+	glGenBuffers(1, &grassColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassColors), grassColors, GL_STATIC_DRAW);
 
 	// setup VBO for the quad object texture coord data
-	glGenBuffers(1, &quadTexCoordVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadTexCoordVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadTextureCoords), quadTextureCoords, GL_STATIC_DRAW);
+	glGenBuffers(1, &grassTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassTextureCoords), grassTextureCoords, GL_STATIC_DRAW);
 
 	// setup quad vertex index array
-	glGenBuffers(1, &quadIndicesVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIndicesVBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadVertexIndices), quadVertexIndices, GL_STATIC_DRAW);
+	glGenBuffers(1, &grassIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(grassVertexIndices), grassVertexIndices, GL_STATIC_DRAW);
 }
 
-// our mountain and sky
-void setupQuadTextureMountainVBO(void) {
+void setupSkyVBO(void) {
 
 	// setup VBO for the quad object position data
-	glGenBuffers(1, &quadMPosVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadMPosVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadMVertices), quadMVertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &skyPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyVertices), skyVertices, GL_STATIC_DRAW);
 
 	// setup VBO for the quad object colour data
-	glGenBuffers(1, &quadMColourVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadMColourVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadMColors), quadMColors, GL_STATIC_DRAW);
+	glGenBuffers(1, &skyColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyColors), skyColors, GL_STATIC_DRAW);
 
 	// setup VBO for the quad object texture coord data
-	glGenBuffers(1, &quadMTexCoordVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadMTexCoordVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadMTextureCoords), quadMTextureCoords, GL_STATIC_DRAW);
+	glGenBuffers(1, &skyTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyTextureCoords), skyTextureCoords, GL_STATIC_DRAW);
 
 	// setup quad vertex index array
-	glGenBuffers(1, &quadMIndicesVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadMIndicesVBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadMVertexIndices), quadMVertexIndices, GL_STATIC_DRAW);
+	glGenBuffers(1, &skyIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(skyVertexIndices), skyVertexIndices, GL_STATIC_DRAW);
 }
+#pragma endregion
 
 // Example rendering functions
 
@@ -293,30 +292,22 @@ void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_BLEND);
-	// render our scene in sequence
 
-	// draw our ground
-	drawTexturedQuadVBOGround();
-
-	// draw our mountain and sky.
-	drawTexturedQuadVBOMountain();
-
-	// when we call our star draw function we will use our second shader for non textured shapes such as our rainbow star
-
-	drawStar_VBO();
+	drawTexturedQuadVBO_Grass();
+	drawTexturedQuadVBO_Sky();
 	
 	glDisable(GL_BLEND);
 	glutSwapBuffers();
 }
 
 
-// draw our ground function
-void drawTexturedQuadVBOGround(void) {
+#pragma region Draw VBOs
+void drawTexturedQuadVBO_Grass(void) {
 	
 	glUseProgram(myShaderProgram);
 
 	// Move our ground shape to the bottom half of the screen
-	GUMatrix4 T = GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	GUMatrix4 T = GUMatrix4::translationMatrix(0.0f, -0.5f, 0.0f);
 	glUniformMatrix4fv(locT, 1, GL_FALSE, (GLfloat*)&T);
 
 
@@ -325,25 +316,25 @@ void drawTexturedQuadVBOGround(void) {
 	
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, myGroundTexture);
+	glBindTexture(GL_TEXTURE_2D, myGrassTexture);
 	glUniform1i(glGetUniformLocation(myShaderProgram, "texture"), 0);
 	glEnable(GL_TEXTURE_2D);
 	
-	glBindBuffer(GL_ARRAY_BUFFER, quadPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassPosVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, quadColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassColourVBO);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, quadTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassTexCoordVBO);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(2);
 
 
 	// Bind the index buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndicesVBO);
 
 	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
 	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, (GLvoid*)0);
@@ -355,14 +346,12 @@ void drawTexturedQuadVBOGround(void) {
 
 }
 
-// Draw our mountain amd sky
-
-void drawTexturedQuadVBOMountain(void) {
+void drawTexturedQuadVBO_Sky(void) {
 	
 	glUseProgram(myShaderProgram);
 
 	//Move our shape into the top position
-	GUMatrix4 T = GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	GUMatrix4 T = GUMatrix4::translationMatrix(0.0f, 0.5f, 0.0f);
 	glUniformMatrix4fv(locT, 1, GL_FALSE, (GLfloat*)&T);
 
 
@@ -371,35 +360,33 @@ void drawTexturedQuadVBOMountain(void) {
 
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, myMountainTexture);
+	glBindTexture(GL_TEXTURE_2D, mySkyTexture);
 	glUniform1i(glGetUniformLocation(myShaderProgram, "texture"), 0);
 	glEnable(GL_TEXTURE_2D);
 
-	glBindBuffer(GL_ARRAY_BUFFER, quadPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyPosVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, quadColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyColourVBO);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, quadTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyTexCoordVBO);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(2);
 
 
 	// Bind the index buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyIndicesVBO);
 
 
 	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
 	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, (GLvoid*)0);
 
 	glDisable(GL_TEXTURE_2D);
-	
-
 }
-
+#pragma endregion
 
 
 // square movement -------------------------------------------------------------
