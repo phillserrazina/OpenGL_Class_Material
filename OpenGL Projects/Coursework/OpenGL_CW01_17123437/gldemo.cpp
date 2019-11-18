@@ -24,6 +24,8 @@ GLuint locT2;
 #pragma region Textures
 GLuint myGrassTexture = 0;
 GLuint mySkyTexture = 1;
+GLuint myRoadTexture = 2;
+GLuint myRoadLineTexture = 3;
 #pragma endregion
 
 #pragma region Mouse Variables
@@ -50,10 +52,10 @@ GLuint grassPosVBO, grassColourVBO, grassTexCoordVBO, grassIndicesVBO;
 // 1) Position Array - Store vertices as (x,y) pairs
 static GLfloat grassVertices[] = {
 
-	-1.0, -0.1f,
-	-1.0f, 1.0f,
-	1.0f, -0.1f,
-	1.0f, 1.0f
+	-1.0, -0.5f,
+	-1.0f, 0.75f,
+	1.0f, -0.5f,
+	1.0f, 0.75f
 };
 
 // 2) Colour Array - Store RGB values as unsigned bytes
@@ -89,10 +91,10 @@ GLuint skyPosVBO, skyColourVBO, skyTexCoordVBO, skyIndicesVBO;
 // 1) Position Array - Store vertices as (x,y) pairs
 static GLfloat skyVertices[] = {
 
-	-1.0, -0.1f,
-	-1.0f, 1.0f,
-	1.0f, -0.1f,
-	1.0f, 1.0f
+	-1.0, -0.5f,
+	-1.0f, 0.5f,
+	1.0f, -0.5f,
+	1.0f, 0.5f
 };
 
 // 2) Colour Array - Store RGB values as unsigned bytes
@@ -119,17 +121,99 @@ static float skyTextureCoords[] = {
 static GLubyte skyVertexIndices[] = { 0, 1, 2, 3 };
 #pragma endregion
 
+#pragma region Road VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint roadPosVBO, roadColourVBO, roadTexCoordVBO, roadIndicesVBO;
+
+// Packed vertex arrays for the ground object
+
+// 1) Position Array - Store vertices as (x,y) pairs
+static GLfloat roadVertices[] = {
+
+	-1.0, -0.25f,
+	-1.0f, 0.25f,
+	1.0f, -0.25f,
+	1.0f, 0.25f
+};
+
+// 2) Colour Array - Store RGB values as unsigned bytes
+static GLubyte roadColors[] = {
+
+	255, 0, 0, 255,
+	255, 255, 0, 255,
+	0, 255, 0, 255,
+	0, 255, 255, 255
+
+};
+
+// 3) Texture coordinate array (store uv coordinates as floating point values)
+static float roadTextureCoords[] = {
+
+	0.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f
+
+};
+
+// 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
+static GLubyte roadVertexIndices[] = { 0, 1, 2, 3 };
+#pragma endregion
+
+#pragma region Road Line VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint roadLinePosVBO, roadLineColourVBO, roadLineTexCoordVBO, roadLineIndicesVBO;
+
+// Packed vertex arrays for the ground object
+
+// 1) Position Array - Store vertices as (x,y) pairs
+static GLfloat roadLineVertices[] = {
+
+	-0.08, -0.03f,
+	-0.095f, 0.03f,
+	0.08f, -0.03f,
+	0.065f, 0.03f
+};
+
+// 2) Colour Array - Store RGB values as unsigned bytes
+static GLubyte roadLineColors[] = {
+
+	255, 0, 0, 255,
+	255, 255, 0, 255,
+	0, 255, 0, 255,
+	0, 255, 255, 255
+
+};
+
+// 3) Texture coordinate array (store uv coordinates as floating point values)
+static float roadLineTextureCoords[] = {
+
+	0.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f
+
+};
+
+// 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
+static GLubyte roadLineVertexIndices[] = { 0, 1, 2, 3 };
+#pragma endregion
+
 #pragma region Function Prototypes
 void init(int argc, char* argv[]);
 
 void setupGrassVBO(void);
+void setupRoadVBO(void);
 void setupSkyVBO(void);
+void setupRoadLineVBO(void);
 
 void report_version(void);
 void display(void);
 
 void drawTexturedQuadVBO_Grass(void);
+void drawTexturedQuadVBO_Road(void);
 void drawTexturedQuadVBO_Sky(void);
+void drawTexturedQuadVBO_RoadLine(float);
 
 void update(void);
 void mouseButtonDown(int button_id, int state, int x, int y);
@@ -213,6 +297,8 @@ void init(int argc, char* argv[]) {
 	// Load demo texture
 	myGrassTexture = fiLoadTexture("grass.jpg");
 	mySkyTexture = fiLoadTexture("sky.jpg");
+	myRoadTexture = fiLoadTexture("road.jpg");
+	myRoadLineTexture = fiLoadTexture("road line.png");
 
 	// Shader setup 
 	myShaderProgram = setupShaders(string("Shaders\\basic_vertex_shader.txt"), string("Shaders\\basic_fragment_shader.txt"));
@@ -222,8 +308,10 @@ void init(int argc, char* argv[]) {
 	locT = glGetUniformLocation(myShaderProgram, "T");
 	locT2 = glGetUniformLocation(myShaderProgramNoTexture, "T2");
 
-	setupGrassVBO();
 	setupSkyVBO();
+	setupGrassVBO();
+	setupRoadVBO();
+	setupRoadLineVBO();
 }
 
 
@@ -283,6 +371,52 @@ void setupSkyVBO(void) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyIndicesVBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(skyVertexIndices), skyVertexIndices, GL_STATIC_DRAW);
 }
+
+void setupRoadVBO(void) {
+
+	// setup VBO for the quad object position data
+	glGenBuffers(1, &roadPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, roadPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(roadVertices), roadVertices, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object colour data
+	glGenBuffers(1, &roadColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, roadColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(roadColors), roadColors, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object texture coord data
+	glGenBuffers(1, &roadTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, roadTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(roadTextureCoords), roadTextureCoords, GL_STATIC_DRAW);
+
+	// setup quad vertex index array
+	glGenBuffers(1, &roadIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, roadIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(roadVertexIndices), roadVertexIndices, GL_STATIC_DRAW);
+}
+
+void setupRoadLineVBO(void) {
+
+	// setup VBO for the quad object position data
+	glGenBuffers(1, &roadLinePosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, roadLinePosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(roadLineVertices), roadLineVertices, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object colour data
+	glGenBuffers(1, &roadLineColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, roadLineColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(roadLineColors), roadLineColors, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object texture coord data
+	glGenBuffers(1, &roadLineTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, roadLineTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(roadLineTextureCoords), roadLineTextureCoords, GL_STATIC_DRAW);
+
+	// setup quad vertex index array
+	glGenBuffers(1, &roadLineIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, roadLineIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(roadLineVertexIndices), roadLineVertexIndices, GL_STATIC_DRAW);
+}
 #pragma endregion
 
 // Example rendering functions
@@ -293,8 +427,19 @@ void display(void) {
 
 	glEnable(GL_BLEND);
 
-	drawTexturedQuadVBO_Grass();
-	drawTexturedQuadVBO_Sky();
+	drawTexturedQuadVBO_Sky();		// Draw the sky
+	drawTexturedQuadVBO_Grass();	// Draw the grass
+	drawTexturedQuadVBO_Road();		// Draw the road
+
+	// Set up road lines variables
+	int numOfRoadLines = 10;
+	float currentPos = 1.0f;
+	
+	// Draw the road lines
+	for (int i = 0; i < numOfRoadLines; i++) {
+		drawTexturedQuadVBO_RoadLine(currentPos);
+		currentPos -= 0.25f;
+	}
 	
 	glDisable(GL_BLEND);
 	glutSwapBuffers();
@@ -306,7 +451,7 @@ void drawTexturedQuadVBO_Grass(void) {
 	
 	glUseProgram(myShaderProgram);
 
-	// Move our ground shape to the bottom half of the screen
+	// Move our grass shape to the bottom half of the screen
 	GUMatrix4 T = GUMatrix4::translationMatrix(0.0f, -0.5f, 0.0f);
 	glUniformMatrix4fv(locT, 1, GL_FALSE, (GLfloat*)&T);
 
@@ -379,6 +524,88 @@ void drawTexturedQuadVBO_Sky(void) {
 
 	// Bind the index buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyIndicesVBO);
+
+
+	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
+	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, (GLvoid*)0);
+
+	glDisable(GL_TEXTURE_2D);
+}
+
+void drawTexturedQuadVBO_Road(void) {
+
+	glUseProgram(myShaderProgram);
+
+	//Move our shape into the top position
+	GUMatrix4 T = GUMatrix4::translationMatrix(0.0f, -0.3f, 0.0f);
+	glUniformMatrix4fv(locT, 1, GL_FALSE, (GLfloat*)&T);
+
+
+	// Bind each vertex buffer and enable
+	// The data is still stored in the GPU but we need to set it up (which also includes validation of the VBOs behind-the-scenes)
+
+	// Bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, myRoadTexture);
+	glUniform1i(glGetUniformLocation(myShaderProgram, "texture"), 0);
+	glEnable(GL_TEXTURE_2D);
+
+	glBindBuffer(GL_ARRAY_BUFFER, roadPosVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, roadColourVBO);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, roadTexCoordVBO);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(2);
+
+
+	// Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, roadIndicesVBO);
+
+
+	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
+	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, (GLvoid*)0);
+
+	glDisable(GL_TEXTURE_2D);
+}
+
+void drawTexturedQuadVBO_RoadLine(float posIndex) {
+
+	glUseProgram(myShaderProgram);
+
+	//Move our shape into the top position
+	GUMatrix4 T = GUMatrix4::translationMatrix(posIndex, -0.3f, 0.0f);
+	glUniformMatrix4fv(locT, 1, GL_FALSE, (GLfloat*)&T);
+
+
+	// Bind each vertex buffer and enable
+	// The data is still stored in the GPU but we need to set it up (which also includes validation of the VBOs behind-the-scenes)
+
+	// Bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, myRoadLineTexture);
+	glUniform1i(glGetUniformLocation(myShaderProgram, "texture"), 0);
+	glEnable(GL_TEXTURE_2D);
+
+	glBindBuffer(GL_ARRAY_BUFFER, roadLinePosVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, roadLineColourVBO);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, roadLineTexCoordVBO);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(2);
+
+
+	// Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, roadLineIndicesVBO);
 
 
 	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
