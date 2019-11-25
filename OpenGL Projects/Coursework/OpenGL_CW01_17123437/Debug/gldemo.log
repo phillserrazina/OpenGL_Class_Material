@@ -1,20 +1,32 @@
-﻿Build started 18/11/2019 12:22:51.
-     1>Project "C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" on node 2 (Build target(s)).
+﻿Build started 18/11/2019 18:24:56.
+     1>Project "C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\gldemo.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt gldemo.cpp
          gldemo.cpp
-     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(176): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(179): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(649): warning C4305: 'argument' : truncation from 'double' to 'const float'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(651): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(657): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(661): warning C4244: 'argument' : conversion from 'double' to 'const float', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(663): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(674): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(680): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(686): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(690): warning C4244: 'argument' : conversion from 'double' to 'const float', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(692): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(704): warning C4305: 'argument' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(712): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(713): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(777): warning C4305: '+=' : truncation from 'double' to 'float'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(779): warning C4305: '-=' : truncation from 'double' to 'float'
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe" /INCREMENTAL /NOLOGO FreeImage\FreeImagePlus.lib windowscodecs.lib CoreStructures\CoreStructures.lib freeglut\freeglut.lib glew\glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.lib" /MACHINE:X86 Debug\gldemo.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe" /INCREMENTAL /NOLOGO FreeImage\FreeImagePlus.lib windowscodecs.lib CoreStructures\CoreStructures.lib freeglut\freeglut.lib glew\glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.lib" /MACHINE:X86 Debug\gldemo.obj
          Debug\shader_setup.obj
          Debug\stdafx.obj
          Debug\texture_loader.obj
-     1>CoreStructures.lib(GUMatrix4.obj) : warning LNK4204: 'C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>CoreStructures.lib(GUMemory.obj) : warning LNK4204: 'C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>CoreStructures.lib(GUVector4.obj) : warning LNK4204: 'C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
-         gldemo.vcxproj -> C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe
-     1>Done Building Project "C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" (Build target(s)).
+         gldemo.vcxproj -> C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe
+     1>Done Building Project "C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.62
+Time Elapsed 00:00:00.79
