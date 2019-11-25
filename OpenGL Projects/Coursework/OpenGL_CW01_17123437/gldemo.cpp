@@ -6,6 +6,8 @@
 #include "stdafx.h"
 #include <stack>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 
 
 using namespace std;
@@ -23,7 +25,6 @@ GLuint myGrassTexture = 0;
 GLuint mySkyTexture = 1;
 GLuint myRoadTexture = 2;
 GLuint myRoadLineTexture = 3;
-GLuint myCarTexture = 4;
 #pragma endregion
 
 #pragma region Mouse Variables
@@ -49,7 +50,13 @@ stack<GUMatrix4> matrixStack;
 float cactusTheta[3] = { 0, 0, 0 };
 
 float carXPos = 0;
+float carYPos = 0;
 float carWheelRot = 0;
+
+const int NUM_OF_CLOUDS = 10;
+float cloudScales[NUM_OF_CLOUDS];
+float cloudStartingX[NUM_OF_CLOUDS];
+float cloudStartingY[NUM_OF_CLOUDS];
 
 #pragma region Grass VAO Variables
 // Vertex Buffer Object IDs for the ground texture object
@@ -99,9 +106,9 @@ GLuint skyPosVBO, skyColourVBO, skyTexCoordVBO, skyIndicesVBO;
 // 1) Position Array - Store vertices as (x,y) pairs
 static GLfloat skyVertices[] = {
 
-	-1.0, -0.5f,
+	-1.0, -0.3f,
 	-1.0f, 0.5f,
-	1.0f, -0.5f,
+	1.0f, -0.3f,
 	1.0f, 0.5f
 };
 
@@ -238,19 +245,6 @@ static GLubyte carColors[] = {
 
 };
 
-// 3) Texture coordinate array (store uv coordinates as floating point values)
-static float carTextureCoords[] = {
-
-	0.0f, 0.0f,
-	1.0f, 0.0f,
-	1.0f, 0.5f,
-	0.75f, 0.5f,
-	0.75f, 1.0f,
-	0.25f, 1.0f,
-	0.0f, 0.5f,
-
-};
-
 // 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
 static GLubyte carVertexIndices[] = { 0, 1, 2, 3, 4, 5, 6 };
 #pragma endregion
@@ -284,20 +278,104 @@ static GLubyte carWheelColors[] = {
 
 };
 
-// 3) Texture coordinate array (store uv coordinates as floating point values)
-static float carWheelTextureCoords[] = {
+// 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
+static GLubyte carWheelVertexIndices[] = { 0, 1, 2, 3, 4, 5 };
+#pragma endregion
 
-	0.2f, 0.0f,
-	0.8f, 0.0f,
-	1.0f, 0.5f,
-	0.8f, 1.0f,
-	0.2f, 1.0f,
-	0.0f, 0.5f,
+#pragma region Cloud VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint cloudPosVBO, cloudColourVBO, cloudTexCoordVBO, cloudIndicesVBO;
 
+// Packed vertex arrays for the ground object
+
+// 1) Position Array - Store vertices as (x,y) pairs
+static GLfloat cloudVertices[] = {
+
+	// BOTTOM
+	-0.2f, 0.0f,		// 1
+	-0.185f, -0.03f,	// 2
+	-0.16f, -0.05f,		// 3
+	-0.14f, -0.05f,		// 4
+	-0.115f, -0.03f,	// 5
+	-0.1f, 0.0f,		// 6
+
+	-0.075f, -0.035f,	// 7
+	-0.03f, -0.06f,		// 8
+	0.03f, -0.06f,		// 9
+	0.075f, -0.035f,	// 10
+
+	0.1f, 0.0f,			// 11
+	0.115f, -0.03f,		// 12
+	0.14f, -0.05f,		// 13
+	0.16f, -0.05f,		// 14
+	0.185f, -0.03f,		// 15
+	0.2f, 0.0f,			// 16
+
+	// TOP
+	0.185f, 0.07f,		// 17
+	0.16f, 0.1f,		// 18
+	0.14f, 0.1f,		// 19
+	0.115f, 0.07f,		// 20
+	0.1f, 0.04f,			// 21
+
+	0.075f, 0.09f,		// 22
+	0.03f, 0.16f,		// 23
+	-0.03f, 0.16f,		// 24
+	-0.075f, 0.09f,	// 25
+
+	-0.1f, 0.04f,		// 26
+	-0.115f, 0.07f,		// 27
+	-0.14f, 0.1f,		// 28
+	-0.16f, 0.1f,		// 29
+	-0.185f, 0.07f,		// 30
+};
+
+// 2) Colour Array - Store RGB values as unsigned bytes
+static GLubyte cloudColors[] = {
+
+	// BOTTOM
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+
+	// TOP
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150,
+	255, 255, 255, 150
 };
 
 // 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
-static GLubyte carWheelVertexIndices[] = { 0, 1, 2, 3, 4, 5 };
+static GLubyte cloudVertexIndices[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+										11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
+										21, 22, 23, 24, 25, 26, 27, 28, 29 };
 #pragma endregion
 
 #pragma region Function Prototypes
@@ -309,6 +387,7 @@ void setupSkyVBO(void);
 void setupRoadLineVBO(void);
 void setupCarVBO(void);
 void setupCarWheelVBO(void);
+void setupCloudVBO(void);
 
 void report_version(void);
 void display(void);
@@ -317,8 +396,14 @@ void drawTexturedQuadVBO_Grass(void);
 void drawTexturedQuadVBO_Road(void);
 void drawTexturedQuadVBO_Sky(void);
 void drawTexturedQuadVBO_RoadLine(float);
-void drawTexturedQuadVBO_Car(void);
-void drawTexturedQuadVBO_CarWheel(float);
+void drawVBO_Car(void);
+void drawVBO_CarWheel(float);
+void drawVBO_Cloud(int);
+
+void handlePositions(void);
+void renderCar(void);
+void renderRoad(void);
+void renderScene(void);
 
 //hierarchical modelling function prototypes
 void renderCactus(GUMatrix4&);
@@ -351,6 +436,13 @@ int _tmain(int argc, char* argv[]) {
 
 void init(int argc, char* argv[]) {
 
+	srand(time(NULL));
+	for (int i = 0; i < NUM_OF_CLOUDS; i++) {
+		cloudScales[i] = (double)rand() / (RAND_MAX);
+		cloudStartingX[i] = (double)rand() / (RAND_MAX) * 2.0 - 1.0;
+		cloudStartingY[i] = (double)rand() / (RAND_MAX) / 2.0 + 0.4;
+	}
+
 	// Initialise COM so we can use Windows Imaging Component
 	initCOM();
 
@@ -363,7 +455,7 @@ void init(int argc, char* argv[]) {
 
 	glutInitWindowSize(1366, 768);
 	glutInitWindowPosition(64, 64);
-	glutCreateWindow("Ground and Sky Texturing using VBO");
+	glutCreateWindow("OpenGL - Filipe Serrazina (17123437) Coursework 1");
 
 	// Register callback functions
 	glutDisplayFunc(display);
@@ -409,10 +501,9 @@ void init(int argc, char* argv[]) {
 
 	// Load demo texture
 	myGrassTexture = fiLoadTexture("grass.jpg");
-	mySkyTexture = fiLoadTexture("sky.jpg");
+	mySkyTexture = fiLoadTexture("Sky.png");
 	myRoadTexture = fiLoadTexture("road.jpg");
 	myRoadLineTexture = fiLoadTexture("road line.png");
-	myCarTexture = fiLoadTexture("road line.png");
 
 	// Shader setup 
 	myShaderProgram = setupShaders(string("Shaders\\basic_vertex_shader.txt"), string("Shaders\\basic_fragment_shader.txt"));
@@ -428,6 +519,7 @@ void init(int argc, char* argv[]) {
 	setupRoadLineVBO();
 	setupCarVBO();
 	setupCarWheelVBO();
+	setupCloudVBO();
 }
 
 
@@ -569,34 +661,33 @@ void setupCarWheelVBO(void) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carWheelIndicesVBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(carWheelVertexIndices), carWheelVertexIndices, GL_STATIC_DRAW);
 }
+
+void setupCloudVBO(void) {
+
+	// setup VBO for the quad object position data
+	glGenBuffers(1, &cloudPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cloudPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cloudVertices), cloudVertices, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object colour data
+	glGenBuffers(1, &cloudColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cloudColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cloudColors), cloudColors, GL_STATIC_DRAW);
+
+	// setup quad vertex index array
+	glGenBuffers(1, &cloudIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cloudIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cloudVertexIndices), cloudVertexIndices, GL_STATIC_DRAW);
+}
 #pragma endregion
 
 // Example rendering functions
 
 void display(void) {
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	glEnable(GL_BLEND);
 
-	drawTexturedQuadVBO_Sky();		// Draw the sky
-	drawTexturedQuadVBO_Grass();	// Draw the grass
-	drawTexturedQuadVBO_Road();		// Draw the road
-
-	// Set up road lines variables
-	int numOfRoadLines = 10;
-	float currentPos = 1.0f;
-	
-	// Draw the road lines
-	for (int i = 0; i < numOfRoadLines; i++) {
-		drawTexturedQuadVBO_RoadLine(currentPos);
-		currentPos -= 0.25f;
-	}
-
-	drawTexturedQuadVBO_Car();
-	drawTexturedQuadVBO_CarWheel(-0.1f);
-	drawTexturedQuadVBO_CarWheel(0.15f);
-	drawTexturedQuadVBO_CarWheel(0.25f);
+	renderScene();
 	
 	//sets up current matrix as the identity matrix (when a matrix is multiplied by the identity matrix, it remains unchanged)
 	//GUMatrix4 currentMatrix = GUMatrix4::identity();
@@ -611,6 +702,50 @@ void display(void) {
 	glutSwapBuffers();
 }
 
+#pragma region Render Helpers
+void handlePositions() {
+	if (carXPos <= -1.5f) carXPos = 1.2f;
+	else if (carXPos >= 1.3f) carXPos = -1.4f;
+
+	if (carYPos > 0.2f) carYPos = 0.2f;
+	else if (carYPos < -0.19f) carYPos = -0.19f;
+
+	for (int i = 0; i < NUM_OF_CLOUDS; i++)
+		if (cloudStartingX[i] >= 1.2f) cloudStartingX[i] = -1.3f;
+}
+
+void renderCar() {
+	drawVBO_Car();
+	drawVBO_CarWheel(-0.1f);
+	drawVBO_CarWheel(0.15f);
+	drawVBO_CarWheel(0.25f);
+}
+
+void renderRoad() {
+	drawTexturedQuadVBO_Road();		// Draw the road
+
+	// Set up road lines variables
+	int numOfRoadLines = 10;
+	float currentPos = 1.0f;
+
+	// Draw the road lines
+	for (int i = 0; i < numOfRoadLines; i++) {
+		drawTexturedQuadVBO_RoadLine(currentPos);
+		currentPos -= 0.25f;
+	}
+}
+
+void renderScene() {
+	handlePositions();
+
+	drawTexturedQuadVBO_Sky();		// Draw the sky
+	drawTexturedQuadVBO_Grass();	// Draw the grass
+	renderRoad();					// Draw the road
+	renderCar();					// Draw the car
+	for (int i = 0; i < NUM_OF_CLOUDS; i++)
+		drawVBO_Cloud(i);
+}
+#pragma endregion
 
 #pragma region Draw VBOs
 void drawTexturedQuadVBO_Grass(void) {
@@ -780,12 +915,12 @@ void drawTexturedQuadVBO_RoadLine(float posIndex) {
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawTexturedQuadVBO_Car() {
+void drawVBO_Car() {
 
 	glUseProgram(myShaderProgramNoTexture);
-
+	
 	//Move our shape into the top position
-	GUMatrix4 T = GUMatrix4::translationMatrix(carXPos, -0.3f + sin(carXPos * 10) / 10, 0.0f);
+	GUMatrix4 T = GUMatrix4::translationMatrix(carXPos, -0.3f + carYPos, 0.0f);
 	glUniformMatrix4fv(locT2, 1, GL_FALSE, (GLfloat*)&T);
 
 
@@ -807,12 +942,12 @@ void drawTexturedQuadVBO_Car() {
 	glDrawElements(GL_POLYGON, 7, GL_UNSIGNED_BYTE, (GLvoid*)0);
 }
 
-void drawTexturedQuadVBO_CarWheel(float x) {
+void drawVBO_CarWheel(float x) {
 
 	glUseProgram(myShaderProgramNoTexture);
 
 	//Move our shape into the top position
-	GUMatrix4 T = GUMatrix4::translationMatrix(x + carXPos, -0.35f + sin(carXPos * 10) / 10, 0.0f) * GUMatrix4::scaleMatrix(0.35f, 0.5f, 0.0f) * GUMatrix4::rotationMatrix(0.0f, 0.0f, carWheelRot);
+	GUMatrix4 T = GUMatrix4::translationMatrix(x + carXPos, -0.35f + carYPos, 0.0f) * GUMatrix4::scaleMatrix(0.35f, 0.5f, 0.0f) * GUMatrix4::rotationMatrix(0.0f, 0.0f, carWheelRot);
 	glUniformMatrix4fv(locT2, 1, GL_FALSE, (GLfloat*)&T);
 
 
@@ -832,6 +967,34 @@ void drawTexturedQuadVBO_CarWheel(float x) {
 
 	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
 	glDrawElements(GL_TRIANGLE_FAN, 6, GL_UNSIGNED_BYTE, (GLvoid*)0);
+}
+
+void drawVBO_Cloud(int cloudIndex) {
+
+	glUseProgram(myShaderProgramNoTexture);
+
+	//Move our shape into the top position
+	GUMatrix4 T = GUMatrix4::translationMatrix(cloudStartingX[cloudIndex], cloudStartingY[cloudIndex] + sin(cloudStartingX[cloudIndex] * 30) / 20, 0.0f) *
+					GUMatrix4::scaleMatrix(cloudScales[cloudIndex], cloudScales[cloudIndex], 0.0f);
+	glUniformMatrix4fv(locT2, 1, GL_FALSE, (GLfloat*)&T);
+
+
+	// Bind each vertex buffer and enable
+	// The data is still stored in the GPU but we need to set it up (which also includes validation of the VBOs behind-the-scenes)
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudPosVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudColourVBO);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	// Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cloudIndicesVBO);
+
+	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
+	glDrawElements(GL_POLYGON, 30, GL_UNSIGNED_BYTE, (GLvoid*)0);
 }
 #pragma endregion
 
@@ -929,7 +1092,8 @@ void renderBigCactusSegment(void)
 // square movement -------------------------------------------------------------
 // update is called every frame
 void update(void) {
-	cactusTheta[0] += 10.5f;
+	for (int i = 0; i < NUM_OF_CLOUDS; i++)
+		cloudStartingX[i] += 0.001f;
 	// Redraw the screen
 	glutPostRedisplay();
 }
@@ -981,13 +1145,18 @@ void keyDown(unsigned char key, int x, int y) {
 		segmentLength -= 0.2;
 
 	if (key == 'a' || key == 'A') {
-		carXPos -= 0.01f;
+		carXPos -= 0.02f;
 		carWheelRot += 0.7f;
 	}
 	else if (key == 'd' || key == 'D') {
-		carXPos += 0.01f;
+		carXPos += 0.02f;
 		carWheelRot -= 0.7f;
 	}
+
+	if (key == 'w' || key == 'W')
+		carYPos += 0.02f;
+	else if (key == 's' || key == 'S')
+		carYPos -= 0.02f;
 
 	if (key == 'r') {
 
@@ -997,70 +1166,3 @@ void keyDown(unsigned char key, int x, int y) {
 }
 
 #pragma endregion
-
-/*
-void setupVBO(GLuint posVBO, GLuint colourVBO, GLuint texCoordVBO, GLuint indicesVBO,
-GLfloat vertices[], GLubyte colors[], float texCoords[], GLubyte vertexIndices[]) {
-
-// setup VBO for the quad object position data
-glGenBuffers(1, &posVBO);
-glBindBuffer(GL_ARRAY_BUFFER, posVBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-// setup VBO for the quad object colour data
-glGenBuffers(1, &colourVBO);
-glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
-// setup VBO for the quad object texture coord data
-glGenBuffers(1, &texCoordVBO);
-glBindBuffer(GL_ARRAY_BUFFER, texCoordVBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
-
-// setup quad vertex index array
-glGenBuffers(1, &indicesVBO);
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesVBO);
-glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndices), vertexIndices, GL_STATIC_DRAW);
-}
-
-void setupVAO(GLuint vao, GLuint posVBO, GLuint colourVBO, GLuint texCoordVBO, GLuint indicesVBO,
-GLfloat vertices[], GLubyte colors[], float texCoords[], GLubyte vertexIndices[]) {
-
-// Create and bind the vertex array object.  This remembers the vertex buffer object bindings below so we don't have to specify them at render time.
-glGenVertexArrays(1, &vao);
-glBindVertexArray(vao);
-
-// Setup the star position VBO
-glGenBuffers(1, &posVBO);
-glBindBuffer(GL_ARRAY_BUFFER, posVBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-glEnableVertexAttribArray(0);
-
-// Setup the star colour VBO
-glGenBuffers(1, &colourVBO);
-glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
-glEnableVertexAttribArray(1);
-
-// setup the star texture coordinate VBO
-glGenBuffers(1, &texCoordVBO);
-glBindBuffer(GL_ARRAY_BUFFER, texCoordVBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
-glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-glEnableVertexAttribArray(2);
-
-// setup star vertex index array
-glGenBuffers(1, &indicesVBO);
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesVBO);
-glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndices), vertexIndices, GL_STATIC_DRAW);
-
-glBindVertexArray(0);
-}
-
-void drawVAO(GLubyte vao, int numOfElements) {
-glBindVertexArray(vao);
-glDrawElements(GL_LINE_LOOP, numOfElements, GL_UNSIGNED_BYTE, (GLvoid*)0);
-}
-*/
