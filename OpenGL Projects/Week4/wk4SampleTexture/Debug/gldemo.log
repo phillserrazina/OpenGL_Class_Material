@@ -1,0 +1,19 @@
+﻿Build started 25/11/2019 12:57:25.
+     1>Project "C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Week4\wk4SampleTexture\gldemo.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\gldemo.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\gldemo.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt gldemo.cpp texture_loader.cpp
+         texture_loader.cpp
+         gldemo.cpp
+     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\week4\wk4sampletexture\gldemo.cpp(101): error C2065: 'myTexture' : undeclared identifier
+     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\week4\wk4sampletexture\gldemo.cpp(101): error C2065: 'blah' : undeclared identifier
+     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\week4\wk4sampletexture\gldemo.cpp(102): error C2146: syntax error : missing ';' before identifier 'blah'
+     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\week4\wk4sampletexture\gldemo.cpp(102): error C2065: 'blah' : undeclared identifier
+     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\week4\wk4sampletexture\gldemo.cpp(102): error C2143: syntax error : missing ';' before '}'
+         Generating Code...
+     1>Done Building Project "C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Week4\wk4SampleTexture\gldemo.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:01.05

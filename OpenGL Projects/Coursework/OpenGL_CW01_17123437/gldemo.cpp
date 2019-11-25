@@ -5,6 +5,7 @@
 
 #include "stdafx.h"
 #include <stack>
+#include <cmath>
 
 
 using namespace std;
@@ -22,6 +23,7 @@ GLuint myGrassTexture = 0;
 GLuint mySkyTexture = 1;
 GLuint myRoadTexture = 2;
 GLuint myRoadLineTexture = 3;
+GLuint myCarTexture = 4;
 #pragma endregion
 
 #pragma region Mouse Variables
@@ -46,6 +48,9 @@ stack<GUMatrix4> matrixStack;
 //used by the rotation matrices setup in the renderCactus() function
 float cactusTheta[3] = { 0, 0, 0 };
 
+float carXPos = 0;
+float carWheelRot = 0;
+
 #pragma region Grass VAO Variables
 // Vertex Buffer Object IDs for the ground texture object
 GLuint grassPosVBO, grassColourVBO, grassTexCoordVBO, grassIndicesVBO;
@@ -55,7 +60,7 @@ GLuint grassPosVBO, grassColourVBO, grassTexCoordVBO, grassIndicesVBO;
 // 1) Position Array - Store vertices as (x,y) pairs
 static GLfloat grassVertices[] = {
 
-	-1.0, -0.5f,
+	-1.0f, -0.5f,
 	-1.0f, 0.75f,
 	1.0f, -0.5f,
 	1.0f, 0.75f
@@ -202,6 +207,99 @@ static float roadLineTextureCoords[] = {
 static GLubyte roadLineVertexIndices[] = { 0, 1, 2, 3 };
 #pragma endregion
 
+#pragma region Car VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint carPosVBO, carColourVBO, carTexCoordVBO, carIndicesVBO;
+
+// Packed vertex arrays for the ground object
+
+// 1) Position Array - Store vertices as (x,y) pairs
+static GLfloat carVertices[] = {
+
+	-0.2f, 0.0f,	// 0
+	0.3f, 0.0f,		// 1 
+	0.3f, 0.1f,		// 2
+	0.15f, 0.1f,	// 3 
+	0.15f, 0.25f,	// 4
+	-0.1f, 0.25f,	// 5
+	-0.2f, 0.07f,	// 6
+};
+
+// 2) Colour Array - Store RGB values as unsigned bytes
+static GLubyte carColors[] = {
+
+	254, 226, 62, 255,
+	254, 226, 62, 255,
+	254, 226, 62, 255,
+	254, 226, 62, 255,
+	254, 226, 62, 255,
+	254, 226, 62, 255,
+	254, 226, 62, 255,
+
+};
+
+// 3) Texture coordinate array (store uv coordinates as floating point values)
+static float carTextureCoords[] = {
+
+	0.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 0.5f,
+	0.75f, 0.5f,
+	0.75f, 1.0f,
+	0.25f, 1.0f,
+	0.0f, 0.5f,
+
+};
+
+// 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
+static GLubyte carVertexIndices[] = { 0, 1, 2, 3, 4, 5, 6 };
+#pragma endregion
+
+#pragma region Car Wheel VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint carWheelPosVBO, carWheelColourVBO, carWheelTexCoordVBO, carWheelIndicesVBO;
+
+// Packed vertex arrays for the ground object
+
+// 1) Position Array - Store vertices as (x,y) pairs
+static GLfloat carWheelVertices[] = {
+
+	-0.05f, 0.0f,	// 0
+	0.05f, 0.0f,	// 1 
+	0.1f, 0.1f,		// 2
+	0.05f, 0.2f,	// 3 
+	-0.05f, 0.2f,	// 4
+	-0.1f, 0.1f,	// 5
+};
+
+// 2) Colour Array - Store RGB values as unsigned bytes
+static GLubyte carWheelColors[] = {
+
+	0, 0, 0, 255,
+	0, 0, 0, 255,
+	0, 0, 0, 255,
+	0, 0, 0, 255,
+	0, 0, 0, 255,
+	0, 0, 0, 255,
+
+};
+
+// 3) Texture coordinate array (store uv coordinates as floating point values)
+static float carWheelTextureCoords[] = {
+
+	0.2f, 0.0f,
+	0.8f, 0.0f,
+	1.0f, 0.5f,
+	0.8f, 1.0f,
+	0.2f, 1.0f,
+	0.0f, 0.5f,
+
+};
+
+// 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
+static GLubyte carWheelVertexIndices[] = { 0, 1, 2, 3, 4, 5 };
+#pragma endregion
+
 #pragma region Function Prototypes
 void init(int argc, char* argv[]);
 
@@ -209,6 +307,8 @@ void setupGrassVBO(void);
 void setupRoadVBO(void);
 void setupSkyVBO(void);
 void setupRoadLineVBO(void);
+void setupCarVBO(void);
+void setupCarWheelVBO(void);
 
 void report_version(void);
 void display(void);
@@ -217,6 +317,8 @@ void drawTexturedQuadVBO_Grass(void);
 void drawTexturedQuadVBO_Road(void);
 void drawTexturedQuadVBO_Sky(void);
 void drawTexturedQuadVBO_RoadLine(float);
+void drawTexturedQuadVBO_Car(void);
+void drawTexturedQuadVBO_CarWheel(float);
 
 //hierarchical modelling function prototypes
 void renderCactus(GUMatrix4&);
@@ -298,16 +400,19 @@ void init(int argc, char* argv[]) {
 	// Initialise OpenGL...
 
 	// Setup colour to clear the window
-	glClearColor(0.2f, 0.2f, 0.8f, 0.0f);
-	//maps coordinate system from  (-1 < x < 1), (-1 < y < 1) to (-100 < x < 100), (-100 < y < 100) using an orthographic projection matrix to "zoom out"
-	gluOrtho2D(-100, 100, -100, 100);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
 	glLineWidth(9.0f);
+
+	glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Load demo texture
 	myGrassTexture = fiLoadTexture("grass.jpg");
 	mySkyTexture = fiLoadTexture("sky.jpg");
 	myRoadTexture = fiLoadTexture("road.jpg");
 	myRoadLineTexture = fiLoadTexture("road line.png");
+	myCarTexture = fiLoadTexture("road line.png");
 
 	// Shader setup 
 	myShaderProgram = setupShaders(string("Shaders\\basic_vertex_shader.txt"), string("Shaders\\basic_fragment_shader.txt"));
@@ -321,6 +426,8 @@ void init(int argc, char* argv[]) {
 	setupGrassVBO();
 	setupRoadVBO();
 	setupRoadLineVBO();
+	setupCarVBO();
+	setupCarWheelVBO();
 }
 
 
@@ -426,6 +533,42 @@ void setupRoadLineVBO(void) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, roadLineIndicesVBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(roadLineVertexIndices), roadLineVertexIndices, GL_STATIC_DRAW);
 }
+
+void setupCarVBO(void) {
+
+	// setup VBO for the quad object position data
+	glGenBuffers(1, &carPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carVertices), carVertices, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object colour data
+	glGenBuffers(1, &carColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carColors), carColors, GL_STATIC_DRAW);
+
+	// setup quad vertex index array
+	glGenBuffers(1, &carIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(carVertexIndices), carVertexIndices, GL_STATIC_DRAW);
+}
+
+void setupCarWheelVBO(void) {
+
+	// setup VBO for the quad object position data
+	glGenBuffers(1, &carWheelPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carWheelPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carWheelVertices), carWheelVertices, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object colour data
+	glGenBuffers(1, &carWheelColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carWheelColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carWheelColors), carWheelColors, GL_STATIC_DRAW);
+
+	// setup quad vertex index array
+	glGenBuffers(1, &carWheelIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carWheelIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(carWheelVertexIndices), carWheelVertexIndices, GL_STATIC_DRAW);
+}
 #pragma endregion
 
 // Example rendering functions
@@ -449,15 +592,20 @@ void display(void) {
 		drawTexturedQuadVBO_RoadLine(currentPos);
 		currentPos -= 0.25f;
 	}
+
+	drawTexturedQuadVBO_Car();
+	drawTexturedQuadVBO_CarWheel(-0.1f);
+	drawTexturedQuadVBO_CarWheel(0.15f);
+	drawTexturedQuadVBO_CarWheel(0.25f);
 	
 	//sets up current matrix as the identity matrix (when a matrix is multiplied by the identity matrix, it remains unchanged)
-	GUMatrix4 currentMatrix = GUMatrix4::identity();
+	//GUMatrix4 currentMatrix = GUMatrix4::identity();
 
 	//loads currentMatrix as the current transformation matrix being used by the fixed-function pipeline
-	glLoadMatrixf((GLfloat*)&currentMatrix);
+	//glLoadMatrixf((GLfloat*)&currentMatrix);
 
 	//calls the "renderCactus" function with the current matrix as a parameter
-	renderCactus(currentMatrix);
+	//renderCactus(currentMatrix);
 
 	glDisable(GL_BLEND);
 	glutSwapBuffers();
@@ -631,6 +779,60 @@ void drawTexturedQuadVBO_RoadLine(float posIndex) {
 
 	glDisable(GL_TEXTURE_2D);
 }
+
+void drawTexturedQuadVBO_Car() {
+
+	glUseProgram(myShaderProgramNoTexture);
+
+	//Move our shape into the top position
+	GUMatrix4 T = GUMatrix4::translationMatrix(carXPos, -0.3f + sin(carXPos * 10) / 10, 0.0f);
+	glUniformMatrix4fv(locT2, 1, GL_FALSE, (GLfloat*)&T);
+
+
+	// Bind each vertex buffer and enable
+	// The data is still stored in the GPU but we need to set it up (which also includes validation of the VBOs behind-the-scenes)
+
+	glBindBuffer(GL_ARRAY_BUFFER, carPosVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, carColourVBO);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	// Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carIndicesVBO);
+
+	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
+	glDrawElements(GL_POLYGON, 7, GL_UNSIGNED_BYTE, (GLvoid*)0);
+}
+
+void drawTexturedQuadVBO_CarWheel(float x) {
+
+	glUseProgram(myShaderProgramNoTexture);
+
+	//Move our shape into the top position
+	GUMatrix4 T = GUMatrix4::translationMatrix(x + carXPos, -0.35f + sin(carXPos * 10) / 10, 0.0f) * GUMatrix4::scaleMatrix(0.35f, 0.5f, 0.0f) * GUMatrix4::rotationMatrix(0.0f, 0.0f, carWheelRot);
+	glUniformMatrix4fv(locT2, 1, GL_FALSE, (GLfloat*)&T);
+
+
+	// Bind each vertex buffer and enable
+	// The data is still stored in the GPU but we need to set it up (which also includes validation of the VBOs behind-the-scenes)
+
+	glBindBuffer(GL_ARRAY_BUFFER, carWheelPosVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, carWheelColourVBO);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	// Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carWheelIndicesVBO);
+
+	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
+	glDrawElements(GL_TRIANGLE_FAN, 6, GL_UNSIGNED_BYTE, (GLvoid*)0);
+}
 #pragma endregion
 
 void renderCactus(GUMatrix4& currentMatrix)
@@ -778,15 +980,14 @@ void keyDown(unsigned char key, int x, int y) {
 	else if (key == '-')
 		segmentLength -= 0.2;
 
-	if (key == 'q' || key == 'Q')
-		cactusTheta[1] += 0.1f;
-	else if (key == 'a' || key == 'A')
-		cactusTheta[1] -= 0.1f;
-
-	if (key == 'w' || key == 'W')
-		cactusTheta[2] += 0.1f;
-	else if (key == 's' || key == 'S')
-		cactusTheta[2] -= 0.1f;
+	if (key == 'a' || key == 'A') {
+		carXPos -= 0.01f;
+		carWheelRot += 0.7f;
+	}
+	else if (key == 'd' || key == 'D') {
+		carXPos += 0.01f;
+		carWheelRot -= 0.7f;
+	}
 
 	if (key == 'r') {
 
