@@ -1,0 +1,22 @@
+#version 330
+
+uniform sampler2D textureImage;
+
+
+// input packet
+in packet {
+
+	vec4 colour;
+	vec2 textureCoord;
+
+} inputFragment;
+
+
+// output packet
+layout (location = 0) out vec4 fragmentColour;
+
+
+void main(void) {
+
+	fragmentColour = texture2D(textureImage, inputFragment.textureCoord);
+}

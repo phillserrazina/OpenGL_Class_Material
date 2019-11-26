@@ -16,10 +16,6 @@ using namespace CoreStructures;
 
 // Globals
 
-GLuint locT; // location of "T" uniform variable in myShaderProgram
-GLuint locT2;
-
-
 #pragma region Textures
 GLuint myGrassTexture = 0;
 GLuint mySkyTexture = 1;
@@ -43,12 +39,11 @@ GLuint myShaderProgram;				// Shader program object for applying textures to our
 GLuint myShaderProgramNoTexture;	// Second shader progam object for non textured shapes such as our rainbow star
 #pragma endregion
 
-//used to adjust length of segments in hierarchical cactus model
-float segmentLength = 1;
-//matrix stack used to store transformation matrices for hierarchical model (this allows the user to move back and forth around a complex hierarchical model more easily) 
+#pragma region Variables
+GLuint locT;
+GLuint locT2;
+
 stack<GUMatrix4> matrixStack;
-//used by the rotation matrices setup in the renderCactus() function
-float cactusTheta[3] = { 0, 0, 0 };
 
 float carXPos = 0;
 float carYPos = 0;
@@ -58,6 +53,7 @@ const int NUM_OF_CLOUDS = 10;
 float cloudScales[NUM_OF_CLOUDS];
 float cloudStartingX[NUM_OF_CLOUDS];
 float cloudStartingY[NUM_OF_CLOUDS];
+#pragma endregion
 
 #pragma region Grass VAO Variables
 // Vertex Buffer Object IDs for the ground texture object
@@ -447,6 +443,8 @@ void renderCar(void);
 void renderRoad(void);
 void renderScene(void);
 
+void drawHierarchy(GUMatrix4&);
+
 //hierarchical modelling function prototypes
 void renderCactus(GUMatrix4&);
 void renderSmallCactusSegment(void);
@@ -732,15 +730,6 @@ void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	renderScene();
-	
-	//sets up current matrix as the identity matrix (when a matrix is multiplied by the identity matrix, it remains unchanged)
-	//GUMatrix4 currentMatrix = GUMatrix4::identity();
-
-	//loads currentMatrix as the current transformation matrix being used by the fixed-function pipeline
-	//glLoadMatrixf((GLfloat*)&currentMatrix);
-
-	//calls the "renderCactus" function with the current matrix as a parameter
-	//renderCactus(currentMatrix);
 
 	glutSwapBuffers();
 }
@@ -758,10 +747,15 @@ void handlePositions() {
 }
 
 void renderCar() {
-	drawVBO_Car();
-	drawVBO_CarWheel(-0.1f);
-	drawVBO_CarWheel(0.15f);
-	drawVBO_CarWheel(0.25f);
+	//drawVBO_Car();
+	//drawVBO_CarWheel(-0.1f);
+	//drawVBO_CarWheel(0.15f);
+	//drawVBO_CarWheel(0.25f);
+
+	GUMatrix4 R = GUMatrix4::identity();
+	glLoadMatrixf((GLfloat*)&R);
+
+	drawHierarchy(R);
 }
 
 void renderRoad() {
@@ -787,6 +781,53 @@ void renderScene() {
 	renderCar();					// Draw the car
 	for (int i = 0; i < NUM_OF_CLOUDS; i++)
 		drawVBO_Cloud(i);
+}
+
+void drawHierarchy(GUMatrix4& R) {
+
+	matrixStack.push(R);
+
+	// Draw Car Body
+	R = R * GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	glLoadMatrixf((GLfloat*)&R);
+
+	drawVBO_Car();
+	matrixStack.push(R);
+
+	// Draw Front Car Wheel
+	R = R * GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	glLoadMatrixf((GLfloat*)&R);
+
+	drawVBO_CarWheel(-0.1f);
+	matrixStack.push(R);
+
+	// Draw Middle Car Wheel
+	R = R * GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	glLoadMatrixf((GLfloat*)&R);
+
+	drawVBO_CarWheel(0.15f);
+
+	R = matrixStack.top();
+	matrixStack.pop();
+
+	matrixStack.push(R);
+
+	// Draw Back Car Wheel
+	R = R * GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	glLoadMatrixf((GLfloat*)&R);
+
+	drawVBO_CarWheel(0.25f);
+
+	R = matrixStack.top();
+	matrixStack.pop();
+
+
+	R = matrixStack.top();
+	matrixStack.pop();
+
+
+	R = matrixStack.top();
+	matrixStack.pop();
 }
 #pragma endregion
 
@@ -1050,97 +1091,6 @@ void drawVBO_Cloud(int cloudIndex) {
 }
 #pragma endregion
 
-void renderCactus(GUMatrix4& currentMatrix)
-{
-	//glScalef() scales down the current matrix by a factor of 100 - this compensates for the fact that we are using a -100 to +100 coordinate scheme instead of a -1 to +1 scheme
-	//this is necessary because the fixed function pipeline falsely believes we are using a -1 to +1 coordinate system
-	//this is because gluOrtho2D simply applies a projection matrix to "zoom out" the camera - it does not make other parts of the pipeline aware of this
-
-	//Note: the order of translation and rotation depends on the value of our current transformation matrix
-	//If we have just drawn a horizontal cactus segment, the rotation applied by the current matrix will cause our coordinates contained in the translation matrix to
-	//be interpreted incorrectly e.g. a positive y-coordinate will be interpreted as a negative x-coordinate if we have previously rotated a quarter-turn anticlockwise
-	//To overcome this, we need to correct the rotation BEFORE applying our translation matrix
-
-	matrixStack.push(currentMatrix);	//stores identity matrix on stack
-
-	currentMatrix = currentMatrix * GUMatrix4::translationMatrix(-0.6, -0.3, 0) * GUMatrix4::rotationMatrix(0, 0, cactusTheta[0]);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderBigCactusSegment();   //draws first segment
-	matrixStack.push(currentMatrix);	//stores first transformation matrix on stack
-
-	currentMatrix = currentMatrix * GUMatrix4::translationMatrix(0, segmentLength / 100, 0) * GUMatrix4::rotationMatrix(0, 0, gu_pi / 2);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderSmallCactusSegment();	   //draws second segment
-	matrixStack.push(currentMatrix);	//stores second transformation matrix on stack
-
-	currentMatrix = currentMatrix * GUMatrix4::rotationMatrix(0, 0, -gu_pi / 2) * GUMatrix4::translationMatrix(-segmentLength / 100 / 1.5, 0, 0) * GUMatrix4::rotationMatrix(0, 0, -cactusTheta[1]);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderBigCactusSegment();
-	matrixStack.push(currentMatrix); //stores third transformation matrix on stack
-
-	//pops third and second matrices from the stack and makes transformation matrix 1 the current matrix
-	matrixStack.pop();
-	matrixStack.pop();
-	currentMatrix = matrixStack.top();
-
-	currentMatrix = currentMatrix * GUMatrix4::translationMatrix(0, segmentLength / 100, 0);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderBigCactusSegment();
-	matrixStack.push(currentMatrix);
-
-	currentMatrix = currentMatrix * GUMatrix4::translationMatrix(0, segmentLength / 100, 0);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderBigCactusSegment();
-	matrixStack.push(currentMatrix);
-
-	currentMatrix = currentMatrix *  GUMatrix4::rotationMatrix(0, 0, -gu_pi / 2);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderSmallCactusSegment();
-	matrixStack.push(currentMatrix);
-
-	currentMatrix = currentMatrix * GUMatrix4::rotationMatrix(0, 0, gu_pi / 2) * GUMatrix4::translationMatrix(segmentLength / 100 / 1.5, 0, 0) * GUMatrix4::rotationMatrix(0, 0, -cactusTheta[2]);
-	glLoadMatrixf((GLfloat*)&currentMatrix);
-	glScalef(0.01, 0.01, 0.01);
-	renderBigCactusSegment();
-	matrixStack.push(currentMatrix);
-
-	matrixStack.pop();
-	matrixStack.pop();
-	matrixStack.pop();
-	matrixStack.pop();
-	matrixStack.pop();
-	matrixStack.pop();
-
-	glLoadMatrixf((GLfloat*)&GUMatrix4::identity());
-	glScalef(0.01, 0.01, 0.01);
-}
-void renderSmallCactusSegment(void)
-{
-	glBegin(GL_POLYGON);
-		glColor3ub(59, 181, 14);
-		glVertex2f(0.95f, 0);
-		glVertex2f(1.0f, 0);
-		glVertex2f(1.0f, segmentLength / 1.5);
-		glVertex2f(0.95f, segmentLength / 1.5);
-	glEnd();
-}
-void renderBigCactusSegment(void)
-{
-	glBegin(GL_POLYGON);
-		glColor3ub(59, 181, 14);
-		glVertex2f(0.95f, 0);
-		glVertex2f(1.0f, 0);
-		glVertex2f(1.0f, segmentLength);
-		glVertex2f(0.95f, segmentLength);
-	glEnd();
-}
-
 // square movement -------------------------------------------------------------
 // update is called every frame
 void update(void) {
@@ -1190,11 +1140,6 @@ void mouseMove(int x, int y) {
 
 
 void keyDown(unsigned char key, int x, int y) {
-
-	if (key == '+')
-		segmentLength += 0.2;
-	else if (key == '-')
-		segmentLength -= 0.2;
 
 	if (key == 'a' || key == 'A') {
 		carXPos -= 0.02f;
