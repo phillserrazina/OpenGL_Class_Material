@@ -25,6 +25,7 @@ GLuint myGrassTexture = 0;
 GLuint mySkyTexture = 1;
 GLuint myRoadTexture = 2;
 GLuint myRoadLineTexture = 3;
+GLuint myCloudTexture = 4;
 #pragma endregion
 
 #pragma region Mouse Variables
@@ -372,6 +373,47 @@ static GLubyte cloudColors[] = {
 	255, 255, 255, 150
 };
 
+static float cloudTextureCoords[] = {
+
+	// BOTTOM
+	0.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 0.0f,
+
+	0.5f, 0.0f,
+	0.5f, 0.0f,
+	0.5f, 0.0f,
+	0.5f, 0.0f,
+
+	1.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 0.0f,
+
+	// TOP
+	1.0f, 0.5f,
+	1.0f, 0.5f,
+	1.0f, 0.5f,
+	1.0f, 0.5f,
+	1.0f, 0.5f,
+
+	0.5f, 1.0f,
+	0.5f, 1.0f,
+	0.5f, 1.0f,
+	0.5f, 1.0f,
+
+	0.0f, 0.5f,
+	0.0f, 0.5f,
+	0.0f, 0.5f,
+	0.0f, 0.5f,
+	0.0f, 0.5f
+};
+
 // 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
 static GLubyte cloudVertexIndices[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 										11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
@@ -496,14 +538,12 @@ void init(int argc, char* argv[]) {
 
 	glLineWidth(9.0f);
 
-	glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	// Load demo texture
 	myGrassTexture = fiLoadTexture("grass.jpg");
 	mySkyTexture = fiLoadTexture("Sky.png");
 	myRoadTexture = fiLoadTexture("road.jpg");
 	myRoadLineTexture = fiLoadTexture("road line.png");
+	myCloudTexture = wicLoadTexture(L"road line.png");
 
 	// Shader setup 
 	myShaderProgram = setupShaders(string("Shaders\\basic_vertex_shader.txt"), string("Shaders\\basic_fragment_shader.txt"));
@@ -674,6 +714,11 @@ void setupCloudVBO(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, cloudColourVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cloudColors), cloudColors, GL_STATIC_DRAW);
 
+	// setup VBO for the quad object texture coord data
+	glGenBuffers(1, &cloudTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cloudTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cloudTextureCoords), cloudTextureCoords, GL_STATIC_DRAW);
+
 	// setup quad vertex index array
 	glGenBuffers(1, &cloudIndicesVBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cloudIndicesVBO);
@@ -685,7 +730,6 @@ void setupCloudVBO(void) {
 
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_BLEND);
 
 	renderScene();
 	
@@ -698,7 +742,6 @@ void display(void) {
 	//calls the "renderCactus" function with the current matrix as a parameter
 	//renderCactus(currentMatrix);
 
-	glDisable(GL_BLEND);
 	glutSwapBuffers();
 }
 
@@ -971,6 +1014,9 @@ void drawVBO_CarWheel(float x) {
 
 void drawVBO_Cloud(int cloudIndex) {
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glUseProgram(myShaderProgramNoTexture);
 
 	//Move our shape into the top position
@@ -990,11 +1036,17 @@ void drawVBO_Cloud(int cloudIndex) {
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
 	glEnableVertexAttribArray(1);
 
+	glBindBuffer(GL_ARRAY_BUFFER, cloudTexCoordVBO);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(2);
+
 	// Bind the index buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cloudIndicesVBO);
 
 	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
 	glDrawElements(GL_POLYGON, 30, GL_UNSIGNED_BYTE, (GLvoid*)0);
+
+	glDisable(GL_BLEND);
 }
 #pragma endregion
 
