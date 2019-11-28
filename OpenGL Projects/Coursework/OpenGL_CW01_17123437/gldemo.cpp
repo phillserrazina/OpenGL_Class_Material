@@ -22,6 +22,7 @@ GLuint mySkyTexture = 1;
 GLuint myRoadTexture = 2;
 GLuint myRoadLineTexture = 3;
 GLuint myCloudTexture = 4;
+GLuint myCarGlassTexture = 5;
 #pragma endregion
 
 #pragma region Mouse Variables
@@ -246,6 +247,45 @@ static GLubyte carColors[] = {
 static GLubyte carVertexIndices[] = { 0, 1, 2, 3, 4, 5, 6 };
 #pragma endregion
 
+#pragma region Car Glass VAO Variables
+// Vertex Buffer Object IDs for the ground texture object
+GLuint carGlassPosVBO, carGlassColourVBO, carGlassTexCoordVBO, carGlassIndicesVBO;
+
+// Packed vertex arrays for the ground object
+
+// 1) Position Array - Store vertices as (x,y) pairs
+static GLfloat carGlassVertices[] = {
+
+	-0.08, -0.01f,
+	-0.02f, 0.1f,
+	0.04f, -0.01f,
+	0.04f, 0.1f
+};
+
+// 2) Colour Array - Store RGB values as unsigned bytes
+static GLubyte carGlassColors[] = {
+
+	255, 0, 0, 255,
+	255, 255, 0, 255,
+	0, 255, 0, 255,
+	0, 255, 255, 255
+
+};
+
+// 3) Texture coordinate array (store uv coordinates as floating point values)
+static float carGlassTextureCoords[] = {
+
+	0.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f
+
+};
+
+// 4) Index Array - Store indices to quad vertices - this determines the order the vertices are to be processed
+static GLubyte carGlassVertexIndices[] = { 0, 1, 2, 3 };
+#pragma endregion
+
 #pragma region Car Wheel VAO Variables
 // Vertex Buffer Object IDs for the ground texture object
 GLuint carWheelPosVBO, carWheelColourVBO, carWheelTexCoordVBO, carWheelIndicesVBO;
@@ -424,6 +464,7 @@ void setupRoadVBO(void);
 void setupSkyVBO(void);
 void setupRoadLineVBO(void);
 void setupCarVBO(void);
+void setupCarGlassVBO(void);
 void setupCarWheelVBO(void);
 void setupCloudVBO(void);
 
@@ -435,6 +476,7 @@ void drawTexturedQuadVBO_Road(void);
 void drawTexturedQuadVBO_Sky(void);
 void drawTexturedQuadVBO_RoadLine(float);
 void drawVBO_Car(void);
+void drawTexturedVBO_CarGlass(void);
 void drawVBO_CarWheel(float);
 void drawVBO_Cloud(int);
 
@@ -476,7 +518,10 @@ int _tmain(int argc, char* argv[]) {
 
 void init(int argc, char* argv[]) {
 
+	// Random number seed
 	srand(time(NULL));
+
+	// Initialize random numbers for cloud variables
 	for (int i = 0; i < NUM_OF_CLOUDS; i++) {
 		cloudScales[i] = (double)rand() / (RAND_MAX);
 		cloudStartingX[i] = (double)rand() / (RAND_MAX) * 2.0 - 1.0;
@@ -542,6 +587,7 @@ void init(int argc, char* argv[]) {
 	myRoadTexture = fiLoadTexture("road.jpg");
 	myRoadLineTexture = fiLoadTexture("road line.png");
 	myCloudTexture = wicLoadTexture(L"road line.png");
+	myCarGlassTexture = fiLoadTexture("car glass.jpg");
 
 	// Shader setup 
 	myShaderProgram = setupShaders(string("Shaders\\basic_vertex_shader.txt"), string("Shaders\\basic_fragment_shader.txt"));
@@ -556,6 +602,7 @@ void init(int argc, char* argv[]) {
 	setupRoadVBO();
 	setupRoadLineVBO();
 	setupCarVBO();
+	setupCarGlassVBO();
 	setupCarWheelVBO();
 	setupCloudVBO();
 }
@@ -682,6 +729,29 @@ void setupCarVBO(void) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(carVertexIndices), carVertexIndices, GL_STATIC_DRAW);
 }
 
+void setupCarGlassVBO(void) {
+
+	// setup VBO for the quad object position data
+	glGenBuffers(1, &carGlassPosVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carGlassPosVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carGlassVertices), carGlassVertices, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object colour data
+	glGenBuffers(1, &carGlassColourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carGlassColourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carGlassColors), carGlassColors, GL_STATIC_DRAW);
+
+	// setup VBO for the quad object texture coord data
+	glGenBuffers(1, &carGlassTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, carGlassTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(carGlassTextureCoords), carGlassTextureCoords, GL_STATIC_DRAW);
+
+	// setup quad vertex index array
+	glGenBuffers(1, &carGlassIndicesVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carGlassIndicesVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(carGlassVertexIndices), carGlassVertexIndices, GL_STATIC_DRAW);
+}
+
 void setupCarWheelVBO(void) {
 
 	// setup VBO for the quad object position data
@@ -747,11 +817,6 @@ void handlePositions() {
 }
 
 void renderCar() {
-	//drawVBO_Car();
-	//drawVBO_CarWheel(-0.1f);
-	//drawVBO_CarWheel(0.15f);
-	//drawVBO_CarWheel(0.25f);
-
 	GUMatrix4 R = GUMatrix4::identity();
 	glLoadMatrixf((GLfloat*)&R);
 
@@ -794,6 +859,13 @@ void drawHierarchy(GUMatrix4& R) {
 	drawVBO_Car();
 	matrixStack.push(R);
 
+	// Draw Car Glass
+	R = R * GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
+	glLoadMatrixf((GLfloat*)&R);
+
+	drawTexturedVBO_CarGlass();
+	matrixStack.push(R);
+
 	// Draw Front Car Wheel
 	R = R * GUMatrix4::translationMatrix(0.0f, 0.0f, 0.0f);
 	glLoadMatrixf((GLfloat*)&R);
@@ -817,6 +889,10 @@ void drawHierarchy(GUMatrix4& R) {
 	glLoadMatrixf((GLfloat*)&R);
 
 	drawVBO_CarWheel(0.25f);
+
+	R = matrixStack.top();
+	matrixStack.pop();
+
 
 	R = matrixStack.top();
 	matrixStack.pop();
@@ -1024,6 +1100,47 @@ void drawVBO_Car() {
 
 	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
 	glDrawElements(GL_POLYGON, 7, GL_UNSIGNED_BYTE, (GLvoid*)0);
+}
+
+void drawTexturedVBO_CarGlass(void) {
+
+	glUseProgram(myShaderProgram);
+
+	//Move our shape into the top position
+	GUMatrix4 T = GUMatrix4::translationMatrix(-0.076f + carXPos, -0.165f + carYPos, 0.0f);
+	glUniformMatrix4fv(locT, 1, GL_FALSE, (GLfloat*)&T);
+
+
+	// Bind each vertex buffer and enable
+	// The data is still stored in the GPU but we need to set it up (which also includes validation of the VBOs behind-the-scenes)
+
+	// Bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, myCarGlassTexture);
+	glUniform1i(glGetUniformLocation(myShaderProgram, "texture"), 0);
+	glEnable(GL_TEXTURE_2D);
+
+	glBindBuffer(GL_ARRAY_BUFFER, carGlassPosVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, carGlassColourVBO);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, carGlassTexCoordVBO);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
+	glEnableVertexAttribArray(2);
+
+
+	// Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, carGlassIndicesVBO);
+
+
+	// Draw the object - same function call as used for vertex arrays but the last parameter is interpreted as an offset into the currently bound index buffer (set to 0 so we start drawing from the beginning of the buffer).
+	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, (GLvoid*)0);
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawVBO_CarWheel(float x) {

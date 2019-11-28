@@ -1,21 +1,22 @@
-﻿Build started 26/11/2019 12:50:22.
-     1>Project "C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" on node 2 (Build target(s)).
+﻿Build started 28/11/2019 14:39:18.
+     1>Project "C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\gldemo.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt gldemo.cpp
          gldemo.cpp
-     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(188): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
-     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(479): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
-     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(481): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(482): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\17123437\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(483): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(189): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(263): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(522): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(526): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(527): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\carolina\desktop\opengl_class_material\opengl projects\coursework\opengl_cw01_17123437\gldemo.cpp(528): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe" /INCREMENTAL /NOLOGO FreeImage\FreeImagePlus.lib windowscodecs.lib CoreStructures\CoreStructures.lib freeglut\freeglut.lib glew\glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.lib" /MACHINE:X86 Debug\gldemo.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe" /INCREMENTAL /NOLOGO FreeImage\FreeImagePlus.lib windowscodecs.lib CoreStructures\CoreStructures.lib freeglut\freeglut.lib glew\glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.lib" /MACHINE:X86 Debug\gldemo.obj
          Debug\shader_setup.obj
          Debug\stdafx.obj
          Debug\texture_loader.obj
-         gldemo.vcxproj -> C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe
-     1>Done Building Project "C:\Users\17123437\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" (Build target(s)).
+         gldemo.vcxproj -> C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\Debug\gldemo.exe
+     1>Done Building Project "C:\Users\Carolina\Desktop\OpenGL_Class_Material\OpenGL Projects\Coursework\OpenGL_CW01_17123437\gldemo.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.58
+Time Elapsed 00:00:01.18
