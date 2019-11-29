@@ -25,7 +25,7 @@ GLuint myCloudTexture = 4;
 GLuint myCarGlassTexture = 5;
 #pragma endregion
 
-#pragma region Mouse Variables
+#pragma region Keyboard and Mouse Variables
 // Mouse input (rotation) example
 // Variable we'll use to animate (rotate) our star object
 float theta = 0.0f;
@@ -844,6 +844,8 @@ void renderScene() {
 	drawTexturedQuadVBO_Grass();	// Draw the grass
 	renderRoad();					// Draw the road
 	renderCar();					// Draw the car
+
+	// Draw the clouds
 	for (int i = 0; i < NUM_OF_CLOUDS; i++)
 		drawVBO_Cloud(i);
 }
